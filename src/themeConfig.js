@@ -1,0 +1,150 @@
+import { userConfig } from "./userConfig";
+
+export const themeStorageKey = "her-todo-theme";
+
+const name = userConfig.displayName;
+const appName = `${name}的 Her Todo`;
+
+export const themeConfig = [
+  {
+    id: "obsidian",
+    name: "Obsidian Code",
+    group: "Tech",
+    title: appName,
+    subtitle: "今日任务",
+    description: "慢慢来，也很厉害。",
+    note: `${name}，完成一点点，也很棒。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: "给自己留一点呼吸空间。",
+    completedMessages: [
+      `完成啦，${name}今天也很厉害。`,
+      `又完成一个小目标啦，${name}很棒。`,
+      "慢慢来，也很厉害。",
+    ],
+    className: "theme-obsidian",
+    visual: "code",
+    designBrief: "高级黑、代码编辑器、终端感、语法高亮。",
+  },
+  {
+    id: "glass",
+    name: "Glass OS",
+    group: "Tech",
+    title: appName,
+    subtitle: "今天的小任务",
+    description: "慢慢完成，不着急。",
+    note: `${name}，今天也要好好照顾自己。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: "先休息一下，再慢慢安排。",
+    completedMessages: [
+      "完成啦，慢慢来就很好。",
+      "慢慢完成，不着急。",
+      "你已经把今天变轻了一点。",
+    ],
+    className: "theme-glass",
+    visual: "glass",
+    designBrief: "玻璃拟态、iOS 小组件、清透温柔。",
+  },
+  {
+    id: "aurora",
+    name: "Aurora Dashboard",
+    group: "Tech",
+    title: appName,
+    subtitle: "慢慢发光",
+    description: "给今天一点柔和的光。",
+    note: `${name}，慢慢发光，也很好。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: "给自己留一点安静的时间。",
+    completedMessages: [
+      `又完成一件小事，${name}今天在发光。`,
+      `${name}慢慢发光，也很好。`,
+      "今天的能量又多了一格。",
+    ],
+    className: "theme-aurora",
+    visual: "aurora",
+    designBrief: "深色极光、AI 产品感、柔和光效。",
+  },
+  {
+    id: "command",
+    name: "Command Center",
+    group: "Tech",
+    title: appName,
+    subtitle: "小目标管理",
+    description: "把今天拆成一个个小目标。",
+    note: `${name}，当前状态良好，继续保持。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: "可以先添加一个小目标。",
+    completedMessages: [
+      `目标已完成，${name}的状态更新成功。`,
+      `${name}，一个小目标已完成。`,
+      "继续保持，现在节奏很好。",
+    ],
+    className: "theme-command",
+    visual: "command",
+    designBrief: "任务控制中心、模块化、状态监控。",
+  },
+  {
+    id: "soft-cyber",
+    name: "Soft Cyber",
+    group: "Tech",
+    title: appName,
+    subtitle: "今天也慢慢来",
+    description: "完成一件小事，也很值得开心。",
+    note: `${name}，先照顾好自己，再去完成小目标。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: "先喝口水，再慢慢安排吧。",
+    completedMessages: [
+      `完成啦，${name}今天也很棒。`,
+      `${name}今天也在认真生活。`,
+      "先喝口水，再继续吧。",
+    ],
+    className: "theme-soft-cyber",
+    visual: "soft",
+    designBrief: "温柔科技、月白雾蓝、星点微闪。",
+  },
+  {
+    id: "lulu",
+    name: "Lulu",
+    group: "Cute",
+    title: appName,
+    subtitle: "噜噜陪你慢慢完成",
+    description: "今天也要好好吃饭。",
+    note: `噜噜提醒${name}：先喝口水，再继续吧。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: `噜噜还没看到任务，${name}先休息一下吧 ☁️`,
+    completedMessages: [
+      `噜噜觉得${name}超棒！`,
+      `${name}又完成一件小事啦～`,
+      "先喝口水，再继续吧。",
+    ],
+    image: ["/images/lulu.jpg", "/images/lulu-2.jpg"],
+    className: "theme-lulu",
+    visual: "lulu",
+    designBrief: "水豚噜噜、奶油治愈、可爱贴心。",
+  },
+  {
+    id: "karry",
+    name: "Karry",
+    group: "Idol",
+    title: appName,
+    subtitle: "今天也要闪闪发光",
+    description: "先完成一个小目标吧。",
+    note: `小凯提醒${name}：把任务做完，再安心休息。`,
+    emptyTitle: "今天还没有任务",
+    emptyDescription: `今天还没有小目标，${name}要不要先安排一个？`,
+    completedMessages: [
+      `又完成一件小事啦，${name}今天也很棒。`,
+      "今天也要闪闪发光。",
+      "先完成任务，再安心休息。",
+    ],
+    image: ["/images/karry.jpg"],
+    className: "theme-karry",
+    visual: "karry",
+    designBrief: "蓝色星光、粉丝向提醒、清爽高级。",
+  },
+];
+
+export const themes = Object.fromEntries(
+  themeConfig.map((theme) => [theme.id, theme])
+);
+
+export const themeList = themeConfig;
