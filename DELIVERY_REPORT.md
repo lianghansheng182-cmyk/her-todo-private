@@ -24,7 +24,7 @@
 ## 已完成检查
 
 - 已执行 `npm install`。
-- 已执行 `npm run build`。
+- 已执行 `npm run build`，结果通过。
 - 已执行 `npm run dev`，本地页面返回 200。
 - 已执行 `npm run preview`，生产预览页面返回 200。
 - 已确认 preview 中 manifest、PWA 图标、Lulu 图片、Karry 图片资源均返回 200。
@@ -34,6 +34,14 @@
 - 已确认完整姓名只在 `src/userConfig.js` 中配置。
 - 已确认没有 service role key。
 - 已确认当前主题配置包含 7 个主题。
+
+## 当前交付状态
+
+- Supabase 已接入：是，已新增客户端、Auth、todos 表 CRUD 和 RLS SQL。
+- 登录保护已完成：是，使用 Magic Link + allowedEmails 白名单。
+- PWA 已完成：基础 manifest 和图标已完成。
+- 主题是否正常：配置层面 7 个主题完整保留，未配置 Supabase 时会先显示配置提示页。
+- 还需要人工配置：Supabase URL、anon key、allowedEmails、Supabase Redirect URLs、Vercel 环境变量。
 
 ## 需要人工配置
 
