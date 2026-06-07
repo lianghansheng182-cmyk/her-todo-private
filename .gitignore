@@ -1,0 +1,9 @@
+node_modules/
+dist/
+work/
+.env
+.env.*
+!.env.example
+*.local
+debug.log
+npm-debug.log*

@@ -1,76 +1,97 @@
 # 静茹的 Her Todo
 
-这是一个使用 React + Vite 制作的私人 Todo App。当前版本不需要后端，任务数据保存在浏览器的 `localStorage` 中，刷新页面后任务仍然存在。
+一个使用 React + Vite 制作的私人 Todo App，支持 7 个主题、Supabase 云端保存、Magic Link 登录和基础 PWA 安装。
 
-## 功能
+页面内主要使用展示名“静茹”。完整姓名只放在 `src/userConfig.js`，不要写进公开说明或 meta description。
 
-- 添加任务
-- 删除任务
-- 勾选任务完成
-- 编辑任务
-- 设置分类：学习、项目、考试、生活、其他
-- 设置优先级：高、中、低
-- 设置截止日期
-- 首页显示今日任务
-- 查看全部任务、已完成任务、未完成任务
-- 显示今日完成率
-
-## 安装依赖
-
-请先确认电脑已经安装 Node.js。
+## 本地启动
 
 ```bash
 npm install
-```
-
-## 启动项目
-
-```bash
 npm run dev
 ```
 
-启动后，终端会显示本地访问地址，通常是：
-
-```bash
-http://localhost:5173
-```
-
-在浏览器打开这个地址即可使用。
-
-## 打包项目
+## 构建
 
 ```bash
 npm run build
 ```
 
-打包后的文件会生成在 `dist` 目录。
+## 预览
 
-## 文件作用
+```bash
+npm run preview
+```
 
-- `package.json`：项目配置文件，记录项目依赖和可执行命令。
-- `vite.config.js`：Vite 配置文件，启用 React 插件。
-- `src/main.jsx`：React 应用入口，把 `App` 组件渲染到页面中。
-- `src/App.jsx`：主要功能代码，包含任务数据、表单、筛选、添加、编辑、删除和 localStorage 保存逻辑。
-- `src/App.css`：页面样式文件，负责布局、颜色、响应式适配和任务卡片样式。
-- `README.md`：项目说明文档，记录安装、启动和扩展方法。
+## Supabase 配置
 
-## 如何继续扩展功能
+1. 创建 Supabase 项目。
+2. 打开 SQL Editor，执行 `supabase/schema.sql`。
+3. 在 Authentication 中开启 Email Magic Link。
+4. 在 Authentication URL Configuration 中设置：
+   - Site URL：本地开发可用 `http://localhost:5173`
+   - Redirect URLs：加入本地地址和 Vercel 部署后的域名
+5. 在 Project Settings / API 中复制：
+   - Project URL
+   - anon public key
+6. 在项目根目录创建 `.env`：
 
-可以从下面几个方向继续练习：
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-1. 添加搜索功能：用输入框根据任务名称筛选任务。
-2. 添加分类筛选：只显示学习、项目或考试任务。
-3. 添加截止日期提醒：让快到期的任务显示特殊颜色。
-4. 添加任务排序：按优先级或截止日期排序。
-5. 添加统计面板：显示总任务数、已完成数、未完成数。
-6. 添加深色模式：用一个按钮切换浅色和深色主题。
+7. 编辑 `src/userConfig.js`，把 `allowedEmails` 改成实际允许登录的邮箱。
 
-## 学习重点
+注意：不要把 service role key 放进前端或 `.env`。
 
-这个项目适合初学者重点理解：
+## Vercel 部署
 
-- `useState` 如何管理页面状态
-- `useEffect` 如何把数据同步到 localStorage
-- 表单输入如何更新 React 状态
-- `map`、`filter` 如何渲染和筛选列表
-- CSS Grid 和媒体查询如何适配电脑与手机
+1. 建议把 GitHub 仓库设为 private。
+2. 在 Vercel 导入项目。
+3. Framework Preset 选择 `Vite`。
+4. Build Command 使用：
+
+```bash
+npm run build
+```
+
+5. Output Directory 使用：
+
+```bash
+dist
+```
+
+6. 在 Vercel Environment Variables 添加：
+
+```env
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
+
+7. 部署后，把 Vercel 域名加入 Supabase Auth 的 Redirect URLs。
+
+## 女朋友使用
+
+1. 手机打开部署后的链接。
+2. 输入白名单邮箱，点击“发送登录链接”。
+3. 在邮箱中点击 Magic Link。
+4. 进入 App 后可以添加到手机主屏幕，以后像 App 一样打开。
+
+## 文件说明
+
+- `src/App.jsx`：主应用逻辑、登录保护、Todo 增删改查、主题切换。
+- `src/App.css`：7 个主题和响应式样式。
+- `src/themeConfig.js`：所有主题文案、className、图片配置。
+- `src/userConfig.js`：私人用户配置和允许邮箱列表。
+- `src/lib/supabaseClient.js`：Supabase 客户端。
+- `supabase/schema.sql`：todos 表和 RLS 策略。
+- `public/manifest.webmanifest`：PWA manifest。
+- `public/icons/`：PWA 图标。
+
+## 安全提醒
+
+- 不要提交 `.env`。
+- 不要把 service role key 放到前端。
+- 仓库建议 private。
+- 如果替换为私人图片，不要公开仓库。
