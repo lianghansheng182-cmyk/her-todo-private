@@ -45,6 +45,8 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 注意：不要把 service role key 放进前端或 `.env`。
 
+当前代码已经接入 Supabase。未配置 `.env` 时，页面会显示云端保存配置提示，不会进入 Todo 主页面。
+
 ## Vercel 部署
 
 1. 建议把 GitHub 仓库设为 private。
@@ -95,3 +97,9 @@ VITE_SUPABASE_ANON_KEY
 - 不要把 service role key 放到前端。
 - 仓库建议 private。
 - 如果替换为私人图片，不要公开仓库。
+
+## 当前交付状态
+
+- `npm run build` 已通过。
+- 7 个主题、静茹专属文案、Supabase 登录保护、PWA manifest 均已保留。
+- 仍需手动配置 Supabase 环境变量、允许邮箱、Supabase Redirect URLs 和 Vercel 环境变量。

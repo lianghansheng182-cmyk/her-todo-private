@@ -96,4 +96,12 @@ npm run dev
 
 ## 最近一次检查
 
-- `npm run build`：通过。
+- 2026-06-08 `npm run build`：通过。
+- 7 个主题配置：已确认。
+- 完整姓名位置：只在 `src/userConfig.js`。
+- PWA 资源：manifest、图标和主题图片文件存在。
+
+## 当前建议状态
+
+- 代码交付已基本完成。
+- 下一步主要是人工配置 Supabase 和 Vercel，并用真实邮箱做端到端验证。

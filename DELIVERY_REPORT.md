@@ -25,6 +25,7 @@
 
 - 已执行 `npm install`。
 - 已执行 `npm run build`，结果通过。
+- 2026-06-08 已再次执行 `npm run build`，结果通过。
 - 已执行 `npm run dev`，本地页面返回 200。
 - 已执行 `npm run preview`，生产预览页面返回 200。
 - 已确认 preview 中 manifest、PWA 图标、Lulu 图片、Karry 图片资源均返回 200。
@@ -34,6 +35,7 @@
 - 已确认完整姓名只在 `src/userConfig.js` 中配置。
 - 已确认没有 service role key。
 - 已确认当前主题配置包含 7 个主题。
+- 已确认 `.env` 被 `.gitignore` 忽略，仓库只保留 `.env.example`。
 
 ## 当前交付状态
 
@@ -42,6 +44,12 @@
 - PWA 已完成：基础 manifest 和图标已完成。
 - 主题是否正常：配置层面 7 个主题完整保留，未配置 Supabase 时会先显示配置提示页。
 - 还需要人工配置：Supabase URL、anon key、allowedEmails、Supabase Redirect URLs、Vercel 环境变量。
+
+## 未完成的人工验证
+
+- 本机尚未配置真实 Supabase 环境变量，Magic Link 发送、登录回跳、云端 Todo 增删改查需要配置后验证。
+- `src/userConfig.js` 的 `allowedEmails` 仍需改成实际允许登录的邮箱。
+- Vercel 部署和手机端添加到主屏幕需要部署后实机验证。
 
 ## 需要人工配置
 
