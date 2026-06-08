@@ -61,41 +61,49 @@ npm run preview
 6. 点击 Run。
 7. 进入 Authentication。
 8. 开启 Email 登录 / Magic Link。
-9. 配置 Site URL：
+9. 进入 Supabase 控制台：
+
+```text
+Authentication -> URL Configuration
+```
+
+10. 配置 Site URL：
 
 ```text
 http://localhost:5173
 ```
 
-10. 配置 Redirect URLs，至少加入：
+11. 配置 Redirect URLs，至少加入：
 
 ```text
 http://localhost:5173
+http://localhost:5173/
 https://你的项目名.vercel.app
+https://你的项目名.vercel.app/
 ```
 
 如果使用 Vercel preview 域名，也可以加进去。
 
-11. 找到 Supabase Project URL：
+12. 找到 Supabase Project URL：
 
 ```text
 Project Settings -> API -> Project URL
 ```
 
-12. 找到 Supabase anon key：
+13. 找到 Supabase anon key：
 
 ```text
 Project Settings -> API -> anon public key
 ```
 
-13. 在项目根目录创建或编辑 `.env`：
+14. 在项目根目录创建或编辑 `.env`：
 
 ```env
 VITE_SUPABASE_URL=你的 Project URL
 VITE_SUPABASE_ANON_KEY=你的 anon public key
 ```
 
-14. 编辑 `src/userConfig.js`，把 `allowedEmails` 改成实际允许登录的邮箱。
+15. 编辑 `src/userConfig.js`，把 `allowedEmails` 改成实际允许登录的邮箱。
 
 不要使用 `service_role` key，也不要把它放进任何前端代码。
 
@@ -130,7 +138,11 @@ VITE_SUPABASE_ANON_KEY
 ```
 
 7. 重新部署。
-8. 部署后，把 Vercel 正式地址加入 Supabase Auth Redirect URLs。
+8. 部署后，把 Vercel 正式地址加入 Supabase Auth Redirect URLs：
+
+```text
+Authentication -> URL Configuration -> Redirect URLs
+```
 
 ## 手机添加到主屏幕
 

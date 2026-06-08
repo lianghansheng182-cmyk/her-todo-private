@@ -93,6 +93,7 @@ PWA 基础配置已完成：
 - `npm run build`：通过。
 - `npm run preview`：可启动。
 - 2026-06-08 最终检查：`npm run build` 通过，`npm run preview` 可启动。
+- 2026-06-08 Supabase 配置后检查：`npm run build` 通过，`npm run dev` 可启动，首页和 PWA manifest 返回 200。
 - dist 已生成。
 - manifest 和图标路径可访问。
 - 主题图片路径可访问。
@@ -106,9 +107,11 @@ PWA 基础配置已完成：
 2. 执行 `supabase/schema.sql`。
 3. 开启 Supabase Auth Email / Magic Link。
 4. 配置 Supabase Site URL。
-5. 配置 Supabase Redirect URLs：
+5. 在 `Authentication -> URL Configuration` 配置 Supabase Redirect URLs：
    - `http://localhost:5173`
+   - `http://localhost:5173/`
    - `https://你的项目名.vercel.app`
+   - `https://你的项目名.vercel.app/`
 6. 在 `.env` 填写：
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
@@ -128,6 +131,22 @@ Project Settings -> API -> anon public key
 ```
 
 不要使用 `service_role` key。
+
+## Supabase 配置进度
+
+- Supabase 项目已创建。
+- `todos` 表已创建。
+- `supabase/schema.sql` 已执行成功。
+- `.env` 已配置，并且未被 git 跟踪。
+- `allowedEmails` 已包含 `lianghansheng182@gmail.com`。
+- `allowedEmails` 已包含 `1402074567@qq.com`，还需要你确认这是否是女朋友实际登录邮箱。
+- 还需要确认 Supabase Redirect URLs 是否已经包含本地地址和尾斜杠地址。
+- 还需要手动完成 Magic Link 邮件点击登录实测。
+- 部署到 Vercel 后，需要在 Vercel 配置相同环境变量，并把 Vercel 域名加入 Supabase Redirect URLs。
+
+## Magic Link 手动验证
+
+自动检查已确认 dev server 能启动，但真实 Magic Link 需要进入邮箱点击登录链接，不能由本地脚本代替。请手动打开 `http://localhost:5173`，输入白名单邮箱，点击“发送登录链接”，再到邮箱中点击 Supabase 登录邮件完成验证。
 
 ## 如何交付给静茹使用
 
