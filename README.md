@@ -1,10 +1,10 @@
 # 静茹的 Her Todo
 
-一个使用 React + Vite 制作的私人 Todo App，支持 7 个主题、Supabase 云端保存、Magic Link 登录和基础 PWA 安装。
+一个使用 React + Vite 制作的私人 Todo App。它支持 7 个主题、本地保存模式、Supabase 云端正式模式、Magic Link 登录保护、备份导入导出和基础 PWA 安装。
 
 页面内主要使用展示名“静茹”。完整姓名只放在 `src/userConfig.js`，不要写进公开说明或 meta description。
 
-## 本地启动
+## 本地运行
 
 ```bash
 npm install
@@ -23,29 +23,81 @@ npm run build
 npm run preview
 ```
 
-## Supabase 配置
+## 两种使用模式
 
-1. 创建 Supabase 项目。
-2. 打开 SQL Editor，执行 `supabase/schema.sql`。
-3. 在 Authentication 中开启 Email Magic Link。
-4. 在 Authentication URL Configuration 中设置：
-   - Site URL：本地开发可用 `http://localhost:5173`
-   - Redirect URLs：加入本地地址和 Vercel 部署后的域名
-5. 在 Project Settings / API 中复制：
-   - Project URL
-   - anon public key
-6. 在项目根目录创建 `.env`：
+### 本地交付模式
 
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+不配置 Supabase 也可以直接打开使用。任务会保存在当前浏览器的 `localStorage` 中，适合先给静茹体验。
+
+本地模式保留：
+
+- 添加、删除、编辑、勾选完成任务
+- 今日任务、全部任务、未完成、已完成筛选
+- 今日完成率
+- 7 个主题切换
+- 首次欢迎页
+- 备份导入导出
+- PWA 添加到主屏幕
+
+### 云端正式模式
+
+配置 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY` 后，App 会自动进入 Supabase 云端模式。
+
+云端模式会启用：
+
+- Supabase Auth Magic Link 登录
+- `allowedEmails` 白名单限制
+- Todo 数据保存到 Supabase
+- 数据绑定当前登录用户的 `user_id`
+- Supabase 读取成功后的本地缓存
+
+## Supabase 配置步骤
+
+1. 打开 Supabase。
+2. 新建项目。
+3. 进入 SQL Editor。
+4. 打开本项目的 `supabase/schema.sql`。
+5. 复制全部 SQL，粘贴到 Supabase SQL Editor。
+6. 点击 Run。
+7. 进入 Authentication。
+8. 开启 Email 登录 / Magic Link。
+9. 配置 Site URL：
+
+```text
+http://localhost:5173
 ```
 
-7. 编辑 `src/userConfig.js`，把 `allowedEmails` 改成实际允许登录的邮箱。
+10. 配置 Redirect URLs，至少加入：
 
-注意：不要把 service role key 放进前端或 `.env`。
+```text
+http://localhost:5173
+https://你的项目名.vercel.app
+```
 
-当前代码已经接入 Supabase。未配置 `.env` 时，页面会显示云端保存配置提示，不会进入 Todo 主页面。
+如果使用 Vercel preview 域名，也可以加进去。
+
+11. 找到 Supabase Project URL：
+
+```text
+Project Settings -> API -> Project URL
+```
+
+12. 找到 Supabase anon key：
+
+```text
+Project Settings -> API -> anon public key
+```
+
+13. 在项目根目录创建或编辑 `.env`：
+
+```env
+VITE_SUPABASE_URL=你的 Project URL
+VITE_SUPABASE_ANON_KEY=你的 anon public key
+```
+
+14. 编辑 `src/userConfig.js`，把 `allowedEmails` 改成实际允许登录的邮箱。
+
+不要使用 `service_role` key，也不要把它放进任何前端代码。
 
 ## Vercel 部署
 
@@ -64,42 +116,53 @@ npm run build
 dist
 ```
 
-6. 在 Vercel Environment Variables 添加：
+6. 在 Vercel 添加环境变量：
+
+```text
+Vercel -> Project -> Settings -> Environment Variables
+```
+
+添加：
 
 ```env
 VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 ```
 
-7. 部署后，把 Vercel 域名加入 Supabase Auth 的 Redirect URLs。
+7. 重新部署。
+8. 部署后，把 Vercel 正式地址加入 Supabase Auth Redirect URLs。
 
-## 女朋友使用
+## 手机添加到主屏幕
 
-1. 手机打开部署后的链接。
-2. 输入白名单邮箱，点击“发送登录链接”。
-3. 在邮箱中点击 Magic Link。
-4. 进入 App 后可以添加到手机主屏幕，以后像 App 一样打开。
+1. 用手机浏览器打开部署后的链接。
+2. 登录或进入本地模式。
+3. 打开浏览器菜单。
+4. 选择“添加到主屏幕”。
+5. 之后可以像 App 一样打开。
+
+## 备份与恢复
+
+- 点击“导出备份”会下载 JSON 文件。
+- 点击“导入备份”可以选择之前导出的 JSON。
+- 备份内容包括 `tasks`、`theme`、`exportedAt`、`appName`。
+- 本地模式导入后会写入 localStorage。
+- 云端模式导入后会写入 Supabase。
 
 ## 文件说明
 
-- `src/App.jsx`：主应用逻辑、登录保护、Todo 增删改查、主题切换。
+- `src/App.jsx`：主应用逻辑、双模式保存、登录保护、Todo 增删改查、备份导入导出。
 - `src/App.css`：7 个主题和响应式样式。
 - `src/themeConfig.js`：所有主题文案、className、图片配置。
 - `src/userConfig.js`：私人用户配置和允许邮箱列表。
 - `src/lib/supabaseClient.js`：Supabase 客户端。
-- `supabase/schema.sql`：todos 表和 RLS 策略。
+- `supabase/schema.sql`：todos 表、RLS 策略、updated_at 触发器。
 - `public/manifest.webmanifest`：PWA manifest。
 - `public/icons/`：PWA 图标。
+- `.env.example`：环境变量示例。
 
 ## 安全提醒
 
 - 不要提交 `.env`。
-- 不要把 service role key 放到前端。
+- 不要把 `service_role` key 放到前端。
 - 仓库建议 private。
 - 如果替换为私人图片，不要公开仓库。
-
-## 当前交付状态
-
-- `npm run build` 已通过。
-- 7 个主题、静茹专属文案、Supabase 登录保护、PWA manifest 均已保留。
-- 仍需手动配置 Supabase 环境变量、允许邮箱、Supabase Redirect URLs 和 Vercel 环境变量。

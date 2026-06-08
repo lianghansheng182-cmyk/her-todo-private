@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   Check,
   ClipboardList,
+  Download,
   Edit3,
   LogOut,
   Mail,
   Plus,
   Sparkles,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabaseClient";
@@ -16,7 +18,9 @@ import { themeList, themes, themeStorageKey } from "./themes";
 import { userConfig } from "./userConfig";
 
 const TASK_CACHE_PREFIX = "her-todo-task-cache";
+const LOCAL_TASKS_KEY = "her-todo-local-tasks";
 const WELCOME_STORAGE_KEY = "her-todo-welcome-seen";
+const BACKUP_APP_NAME = "静茹的 Her Todo";
 
 const categories = ["学习", "生活", "护肤", "运动", "约会", "心情", "其他"];
 const priorities = ["高", "中", "低"];
@@ -55,9 +59,36 @@ function getPriorityCode(priority) {
 function isAllowedEmail(email) {
   const normalizedEmail = email.trim().toLowerCase();
   return userConfig.allowedEmails
-    .filter((allowedEmail) => !allowedEmail.includes("请在这里填写"))
+    .filter((allowedEmail) => !allowedEmail.includes("请"))
     .map((allowedEmail) => allowedEmail.trim().toLowerCase())
     .includes(normalizedEmail);
+}
+
+function getAllowedEmails() {
+  return userConfig.allowedEmails.filter((allowedEmail) => {
+    return allowedEmail.trim() && !allowedEmail.includes("请");
+  });
+}
+
+function createTaskId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function normalizeImportedTask(task) {
+  return {
+    id: task.id || createTaskId(),
+    title: String(task.title || "").trim(),
+    category: categories.includes(task.category) ? task.category : "其他",
+    priority: priorities.includes(task.priority) ? task.priority : "中",
+    dueDate:
+      task.dueDate || task.due_date || new Date().toISOString().slice(0, 10),
+    completed: Boolean(task.completed),
+    createdAt: task.createdAt || task.created_at || new Date().toISOString(),
+  };
 }
 
 function mapRowToTask(row) {
@@ -96,6 +127,7 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [syncStatus, setSyncStatus] = useState("idle");
   const [syncMessage, setSyncMessage] = useState("");
+  const importFileRef = useRef(null);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(() => {
     return localStorage.getItem(WELCOME_STORAGE_KEY) === "true";
   });
@@ -110,10 +142,13 @@ function App() {
 
   const currentTheme = themes[themeId] || themes.obsidian;
   const isObsidian = currentTheme.id === "obsidian";
+  const isCloudMode = isSupabaseConfigured;
+  const allowedEmails = getAllowedEmails();
+  const hasAllowedEmails = allowedEmails.length > 0;
   const user = session?.user;
   const userEmail = user?.email || "";
-  const cacheKey = user ? `${TASK_CACHE_PREFIX}-${user.id}` : null;
-  const canUseTodo = Boolean(user && isAllowedEmail(userEmail));
+  const cacheKey = isCloudMode && user ? `${TASK_CACHE_PREFIX}-${user.id}` : LOCAL_TASKS_KEY;
+  const canUseTodo = !isCloudMode || Boolean(user && isAllowedEmail(userEmail));
 
   useEffect(() => {
     localStorage.setItem(themeStorageKey, themeId);
@@ -148,13 +183,27 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!isCloudMode) {
+      const savedTasks = localStorage.getItem(LOCAL_TASKS_KEY);
+      if (savedTasks) {
+        try {
+          setTasks(JSON.parse(savedTasks));
+        } catch {
+          setTasks([]);
+        }
+      }
+      setSyncStatus("local");
+      setSyncMessage("当前为本地保存模式，任务会保存在当前设备。");
+      return;
+    }
+
     if (!canUseTodo || !cacheKey) {
       setTasks([]);
       return;
     }
 
     loadTasks();
-  }, [canUseTodo, cacheKey]);
+  }, [canUseTodo, cacheKey, isCloudMode]);
 
   const todayTasks = useMemo(
     () => tasks.filter((task) => isToday(task.dueDate)),
@@ -225,6 +274,13 @@ function App() {
     }
   }
 
+  function saveLocalTasks(nextTasks) {
+    setTasks(nextTasks);
+    localStorage.setItem(LOCAL_TASKS_KEY, JSON.stringify(nextTasks));
+    setSyncStatus("local");
+    setSyncMessage("当前为本地保存模式，任务会保存在当前设备。");
+  }
+
   function handleInputChange(event) {
     const { name, value } = event.target;
     setForm((currentForm) => ({
@@ -241,6 +297,11 @@ function App() {
     const email = loginEmail.trim();
     if (!email) {
       setAuthError("请先输入邮箱。");
+      return;
+    }
+
+    if (!hasAllowedEmails) {
+      setAuthError("请先在 src/userConfig.js 里填写允许登录的邮箱。");
       return;
     }
 
@@ -265,6 +326,8 @@ function App() {
   }
 
   async function handleSignOut() {
+    if (!supabase) return;
+
     await supabase.auth.signOut();
     setSession(null);
     setTasks([]);
@@ -272,10 +335,44 @@ function App() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!user) return;
+    if (isCloudMode && !user) return;
 
     const title = form.title.trim();
     if (!title) {
+      return;
+    }
+
+    if (!isCloudMode) {
+      if (editingId) {
+        const nextTasks = tasks.map((task) =>
+          task.id === editingId
+            ? {
+                ...task,
+                title,
+                category: form.category,
+                priority: form.priority,
+                dueDate: form.dueDate,
+              }
+            : task
+        );
+        saveLocalTasks(nextTasks);
+        setEditingId(null);
+        setTechTip("任务已更新，继续按自己的节奏来。");
+      } else {
+        const newTask = {
+          id: createTaskId(),
+          title,
+          category: form.category,
+          priority: form.priority,
+          dueDate: form.dueDate,
+          completed: false,
+          createdAt: new Date().toISOString(),
+        };
+        saveLocalTasks([newTask, ...tasks]);
+        setTechTip("任务已添加，慢慢完成就好。");
+      }
+
+      setForm(emptyForm);
       return;
     }
 
@@ -361,7 +458,21 @@ function App() {
 
   async function toggleTask(taskId) {
     const currentTask = tasks.find((task) => task.id === taskId);
-    if (!currentTask || !user) return;
+    if (!currentTask || (isCloudMode && !user)) return;
+
+    if (!isCloudMode) {
+      const nextTasks = tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, completed: !currentTask.completed }
+          : task
+      );
+      saveLocalTasks(nextTasks);
+
+      if (!currentTask.completed) {
+        setTechTip("完成啦，今天也很厉害。");
+      }
+      return;
+    }
 
     const { data, error } = await supabase
       .from("todos")
@@ -392,7 +503,17 @@ function App() {
   }
 
   async function deleteTask(taskId) {
-    if (!user) return;
+    if (isCloudMode && !user) return;
+
+    if (!isCloudMode) {
+      const nextTasks = tasks.filter((task) => task.id !== taskId);
+      saveLocalTasks(nextTasks);
+
+      if (editingId === taskId) {
+        cancelEditing();
+      }
+      return;
+    }
 
     const { error } = await supabase
       .from("todos")
@@ -429,6 +550,78 @@ function App() {
     setHasSeenWelcome(true);
   }
 
+  function exportBackup() {
+    const backup = {
+      appName: BACKUP_APP_NAME,
+      exportedAt: new Date().toISOString(),
+      theme: themeId,
+      tasks,
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `her-todo-backup-${new Date()
+      .toISOString()
+      .slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setTechTip("备份已导出");
+  }
+
+  async function importBackup(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const content = await file.text();
+      const backup = JSON.parse(content);
+      if (!Array.isArray(backup.tasks)) {
+        throw new Error("Invalid backup");
+      }
+
+      const shouldImport = window.confirm(
+        "导入备份会把备份里的任务加入当前清单，确定继续吗？"
+      );
+      if (!shouldImport) return;
+
+      const importedTasks = backup.tasks
+        .map(normalizeImportedTask)
+        .filter((task) => task.title);
+
+      if (backup.theme && themes[backup.theme]) {
+        setThemeId(backup.theme);
+      }
+
+      if (!isCloudMode) {
+        saveLocalTasks([...importedTasks, ...tasks]);
+        setTechTip("导入完成");
+        return;
+      }
+
+      if (!user) return;
+
+      const { error } = await supabase.from("todos").insert(
+        importedTasks.map((task) => mapTaskToRow(task, user.id))
+      );
+
+      if (error) {
+        setSyncStatus("error");
+        setSyncMessage("导入失败，请检查文件格式");
+        return;
+      }
+
+      setTechTip("导入完成");
+      await loadTasks();
+    } catch {
+      setSyncStatus("error");
+      setSyncMessage("导入失败，请检查文件格式");
+    }
+  }
+
   function getEmptyMessage() {
     if (activeFilter === "completed") {
       return "还没有已完成任务";
@@ -445,26 +638,6 @@ function App() {
     if (!syncMessage) return null;
 
     return <div className={`sync-message ${syncStatus}`}>{syncMessage}</div>;
-  }
-
-  function renderSetupPage() {
-    return (
-      <main className={`app ${currentTheme.className}`}>
-        <section className="auth-screen">
-          <div className="auth-card">
-            <p className="welcome-kicker">Supabase setup</p>
-            <h1>需要先配置云端保存</h1>
-            <p>
-              当前还没有检测到 Supabase 环境变量。
-              <br />
-              配置完成后，静茹的小任务会保存到云端。
-            </p>
-            <code>VITE_SUPABASE_URL</code>
-            <code>VITE_SUPABASE_ANON_KEY</code>
-          </div>
-        </section>
-      </main>
-    );
   }
 
   function renderAuthPage() {
@@ -484,6 +657,10 @@ function App() {
 
             {!emailAllowed ? (
               <div className="auth-error">这个小 Todo 只开放给静茹使用。</div>
+            ) : !hasAllowedEmails ? (
+              <div className="auth-error">
+                请先在 src/userConfig.js 里填写允许登录的邮箱。
+              </div>
             ) : (
               <>
                 <label>
@@ -520,10 +697,6 @@ function App() {
     );
   }
 
-  if (!isSupabaseConfigured) {
-    return renderSetupPage();
-  }
-
   if (authLoading) {
     return (
       <main className={`app ${currentTheme.className}`}>
@@ -536,7 +709,7 @@ function App() {
     );
   }
 
-  if (!session || !canUseTodo) {
+  if (isCloudMode && (!session || !canUseTodo)) {
     return renderAuthPage();
   }
 
@@ -637,11 +810,13 @@ function App() {
 
             <div className="hero-side">
               <div className="account-pill">
-                <span>{userEmail || "静茹的小任务清单"}</span>
-                <button type="button" onClick={handleSignOut}>
-                  <LogOut size={15} />
-                  退出
-                </button>
+                <span>{isCloudMode ? userEmail : "本地保存模式"}</span>
+                {isCloudMode && (
+                  <button type="button" onClick={handleSignOut}>
+                    <LogOut size={15} />
+                    退出
+                  </button>
+                )}
               </div>
 
               <label className="theme-picker">
@@ -695,6 +870,28 @@ function App() {
                     </small>
                   </>
                 )}
+              </div>
+
+              <div className="backup-actions" aria-label="备份与恢复">
+                <button className="secondary-button" type="button" onClick={exportBackup}>
+                  <Download size={16} />
+                  导出备份
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => importFileRef.current?.click()}
+                >
+                  <Upload size={16} />
+                  导入备份
+                </button>
+                <input
+                  ref={importFileRef}
+                  className="backup-input"
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={importBackup}
+                />
               </div>
             </div>
           </section>

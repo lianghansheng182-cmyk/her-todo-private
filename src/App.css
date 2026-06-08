@@ -2060,6 +2060,23 @@ select:focus {
   background: var(--soft-chip);
 }
 
+.backup-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.backup-actions .secondary-button {
+  width: 100%;
+  min-height: 38px;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+
+.backup-input {
+  display: none;
+}
+
 /* Tech theme family */
 .theme-glass,
 .theme-aurora,
